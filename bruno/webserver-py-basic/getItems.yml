@@ -1,0 +1,12 @@
+info:
+  name: Get all items
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{baseUrl}}/getItems/"
+  auth: inherit
+
+settings:
+  encodeUrl: true

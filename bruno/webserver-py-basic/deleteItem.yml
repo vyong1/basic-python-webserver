@@ -1,0 +1,12 @@
+info:
+  name: Delete item
+  type: http
+  seq: 4
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/deleteItem/{{itemId}}/"
+  auth: inherit
+
+settings:
+  encodeUrl: true

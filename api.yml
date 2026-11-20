@@ -1,0 +1,79 @@
+openapi: 3.0.0
+info:
+  title: Items API
+  version: 1.0.0
+paths:
+  /getItems/:
+    get:
+      operationId: getItems
+      summary: Get all items
+      description: Returns the items saved in the database.
+      responses:
+        '200':
+          description: The saved items.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+  /putItem/:
+    post:
+      operationId: putItem
+      summary: Save an item
+      description: Saves an item to the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '201':
+          description: The item was saved.
+  /patchItem/{id}/:
+    patch:
+      operationId: patchItem
+      summary: Update an item
+      description: Updates an existing item in the database.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Item'
+      responses:
+        '200':
+          description: The item was updated.
+  /deleteItem/{id}/:
+    delete:
+      operationId: deleteItem
+      summary: Delete an item
+      description: Deletes an item from the database.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The item was deleted.
+components:
+  schemas:
+    Item:
+      type: object
+      required:
+        - id
+        - value
+      properties:
+        id:
+          type: string
+        value:
+          type: string

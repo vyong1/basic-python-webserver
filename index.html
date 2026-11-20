@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Items API</title>
+  </head>
+  <body>
+    <main>
+      <h1>Items API</h1>
+      <p>Available endpoints for managing items:</p>
+      <ul>
+        <li><code>GET /getItems/</code> — Get all items.</li>
+        <li><code>POST /putItem/</code> — Save an item.</li>
+        <li><code>PATCH /patchItem/{id}/</code> — Update an item.</li>
+        <li><code>DELETE /deleteItem/{id}/</code> — Delete an item.</li>
+      </ul>
+      <p>Item request bodies use JSON with string fields <code>id</code> and <code>value</code>.</p>
+    </main>
+  </body>
+</html>
