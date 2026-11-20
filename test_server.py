@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from server import ItemStore, create_app
+from server import DatabaseError, ItemStore, create_app
 
 
 class ItemsAPITest(unittest.TestCase):
@@ -86,6 +86,19 @@ class ItemsAPITest(unittest.TestCase):
         self.assertEqual(status, 409)
         status, _ = self.request("DELETE", "/deleteItem/missing/")
         self.assertEqual(status, 404)
+
+    def test_database_error_uses_app_error_handler(self):
+        class FailingStore:
+            def get_items(self):
+                raise DatabaseError("database unavailable")
+
+        client = create_app(FailingStore()).test_client()
+        response = client.get("/getItems/")
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(
+            json.loads(response.data),
+            {"error": "Internal server error"},
+        )
 
 
 if __name__ == "__main__":
