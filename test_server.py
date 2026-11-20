@@ -54,12 +54,19 @@ class ItemsAPITest(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertIn(b"<!doctype html>", body)
             for endpoint in (
+                b"GET /health",
                 b"GET /getItems/",
                 b"POST /putItem/",
                 b"PATCH /patchItem/{id}/",
                 b"DELETE /deleteItem/{id}/",
             ):
                 self.assertIn(endpoint, body)
+
+    def test_health_check(self):
+        for path in ("/health", "/health/", "/healthz"):
+            status, body = self.request("GET", path)
+            self.assertEqual(status, 200)
+            self.assertEqual(json.loads(body), {"status": "ok"})
 
     def test_update_requires_matching_item_id_and_existing_record(self):
         status, _ = self.request(

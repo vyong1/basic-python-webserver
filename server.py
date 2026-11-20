@@ -52,6 +52,12 @@ def create_app(store):
         body = Path(__file__).with_name("index.html").read_bytes()
         return Response(body, mimetype="text/html")
 
+    @app.get("/health")
+    @app.get("/health/")
+    @app.get("/healthz")
+    def health():
+        return json_response(200, {"status": "ok"})
+
     @app.get("/getItems/")
     def get_items():
         try:
