@@ -14,18 +14,17 @@ def create_app(store):
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = MAX_REQUEST_SIZE
 
-    def read_item():
-        item = request.get_json(silent=True)
+    def validate_item_json(item_json):
         if (
-            not isinstance(item, dict)
-            or not isinstance(item.get("id"), str)
-            or not isinstance(item.get("value"), str)
+            not isinstance(item_json, dict)
+            or not isinstance(item_json.get("id"), str)
+            or not isinstance(item_json.get("value"), str)
         ):
             return None, json_response(
                 400,
                 {"error": "Item must contain string fields 'id' and 'value'"},
             )
-        return item, None
+        return item_json, None
 
     def store_error():
         current_app.logger.error("Database operation failed")
@@ -67,7 +66,7 @@ def create_app(store):
 
     @app.post("/putItem/")
     def put_item():
-        item, error = read_item()
+        item, error = validate_item_json()
         if error is not None:
             return error
         try:
@@ -80,7 +79,7 @@ def create_app(store):
 
     @app.patch("/patchItem/<item_id>/")
     def patch_item(item_id):
-        item, error = read_item()
+        item, error = validate_item_json()
         if error is not None:
             return error
         if item["id"] != item_id:
