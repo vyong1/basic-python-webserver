@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 
-from flask import Flask, Response, current_app, request
+from flask import Flask, Response, current_app, render_template_string, request
 
 from sqlitedb import DatabaseError, ItemStore
 
@@ -72,8 +72,12 @@ def create_app(store):
     @app.get("/")
     @app.get("/index.html")
     def index():
-        body = Path(__file__).with_name("index.html").read_bytes()
-        return Response(body, mimetype="text/html")
+        template = Path(__file__).with_name("index.html").read_text(
+            encoding="utf-8"
+        )
+        return render_template_string(
+            template, backend_port=request.environ["SERVER_PORT"]
+        )
 
     @app.get("/health")
     @app.get("/health/")

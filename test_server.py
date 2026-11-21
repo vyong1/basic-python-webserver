@@ -67,6 +67,10 @@ class ItemsAPITest(unittest.TestCase):
             ):
                 self.assertIn(endpoint, body)
 
+    def test_api_index_shows_the_backend_port(self):
+        response = self.client.get("/", base_url="http://localhost:8001")
+        self.assertIn(b"backend port: <code>8001</code>", response.data)
+
     def test_health_check(self):
         for path in ("/health", "/health/", "/healthz"):
             status, body = self.request("GET", path)
