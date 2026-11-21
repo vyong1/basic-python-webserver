@@ -101,14 +101,15 @@ def create_app(store):
     return app
 
 
+database_path = os.environ.get(
+    "ITEMS_DB_PATH", str(Path(__file__).with_name("items.db"))
+)
+app = create_app(ItemStore(database_path))
+
+
 def main():
-    database_path = os.environ.get(
-        "ITEMS_DB_PATH", str(Path(__file__).with_name("items.db"))
-    )
-    store = ItemStore(database_path)
     host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "8000"))
-    app = create_app(store)
     print("Serving items API at http://{}:{}".format(host, port))
     app.run(host=host, port=port, threaded=True)
 
