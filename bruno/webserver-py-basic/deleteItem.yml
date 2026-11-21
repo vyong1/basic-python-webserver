@@ -5,8 +5,15 @@ info:
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/deleteItem/{{itemId}}/"
+  url: "{{baseUrl}}/deleteItem/:id/"
+  params:
+    - name: id
+      value: asdasd
+      type: path
   auth: inherit
 
 settings:
   encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -36,9 +36,9 @@ class ItemsAPITest(unittest.TestCase):
             [{"id": "one", "value": "first"}],
         )
         self.assertEqual(
-            self.request(
-                "PATCH", "/patchItem/one/", {"id": "one", "value": "updated"}
-            )[0],
+            self.request("PATCH", "/patchItem/one/", {"id": "one", "value": "updated"})[
+                0
+            ],
             200,
         )
         self.assertEqual(
@@ -80,9 +80,7 @@ class ItemsAPITest(unittest.TestCase):
 
     def test_duplicate_create_and_missing_delete_report_conflicts(self):
         self.request("POST", "/putItem/", {"id": "one", "value": "first"})
-        status, _ = self.request(
-            "POST", "/putItem/", {"id": "one", "value": "second"}
-        )
+        status, _ = self.request("POST", "/putItem/", {"id": "one", "value": "second"})
         self.assertEqual(status, 409)
         status, _ = self.request("DELETE", "/deleteItem/missing/")
         self.assertEqual(status, 404)

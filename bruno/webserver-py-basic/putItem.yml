@@ -10,8 +10,7 @@ http:
     type: json
     data: |-
       {
-        "id": "sample-item",
-        "value": "Sample value"
+        "value": "Sample valueasdasd"
       }
   auth: inherit
 

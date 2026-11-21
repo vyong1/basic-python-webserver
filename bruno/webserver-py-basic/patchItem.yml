@@ -5,15 +5,21 @@ info:
 
 http:
   method: PATCH
-  url: "{{baseUrl}}/patchItem/{{itemId}}/"
+  url: "{{baseUrl}}/patchItem/:id/"
+  params:
+    - name: id
+      value: "2"
+      type: path
   body:
     type: json
     data: |-
       {
-        "id": "{{itemId}}",
         "value": "Updated value"
       }
   auth: inherit
 
 settings:
   encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -4,8 +4,7 @@ from pathlib import Path
 
 from flask import Flask, Response, current_app, request
 
-from db import DatabaseError, DuplicateItemError, ItemStore
-
+from sqlitedb import DatabaseError, ItemStore
 
 MAX_REQUEST_SIZE = 1024 * 1024
 
@@ -15,14 +14,12 @@ def create_app(store):
     app.config["MAX_CONTENT_LENGTH"] = MAX_REQUEST_SIZE
 
     def validate_item_json(item_json):
-        if (
-            not isinstance(item_json, dict)
-            or not isinstance(item_json.get("id"), str)
-            or not isinstance(item_json.get("value"), str)
+        if not isinstance(item_json, dict) or not isinstance(
+            item_json.get("value"), str
         ):
             return None, json_response(
                 400,
-                {"error": "Item must contain string fields 'id' and 'value'"},
+                {"error": "Item must contain string field 'value'"},
             )
         return item_json, None
 
@@ -68,11 +65,7 @@ def create_app(store):
         if error is not None:
             return error
         
-        try:
-            store.put_item(item)
-        except DuplicateItemError:
-            return json_response(409, {"error": "An item with this id already exists"})
-        
+        store.put_item(item)
         return "", 201
 
     @app.patch("/patchItem/<item_id>/")
@@ -80,22 +73,13 @@ def create_app(store):
         item, error = validate_item_json(request.get_json(silent=True))
         if error is not None:
             return error
-        if item["id"] != item_id:
-            return json_response(400, {"error": "Item id must match the path id"})
         
-        updated = store.patch_item(item_id, item)
-
-        if not updated:
-            return json_response(404, {"error": "Item not found"})
-        
+        store.patch_item(item_id, item)
         return "", 200
 
     @app.delete("/deleteItem/<item_id>/")
     def delete_item(item_id):
-        deleted = store.delete_item(item_id)
-
-        if not deleted:
-            return json_response(404, {"error": "Item not found"})
+        store.delete_item(item_id)
         return "", 200
 
     return app
