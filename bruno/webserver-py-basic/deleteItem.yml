@@ -5,11 +5,13 @@ info:
 
 http:
   method: DELETE
-  url: "{{baseUrl}}/deleteItem/:id/"
-  params:
-    - name: id
-      value: asdasd
-      type: path
+  url: "{{baseUrl}}/deleteItem/"
+  body:
+    type: json
+    data: |-
+      {
+        "id": 11
+      }
   auth: inherit
 
 settings:

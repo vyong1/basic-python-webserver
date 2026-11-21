@@ -5,15 +5,12 @@ info:
 
 http:
   method: PATCH
-  url: "{{baseUrl}}/patchItem/:id/"
-  params:
-    - name: id
-      value: "2"
-      type: path
+  url: "{{baseUrl}}/patchItem/"
   body:
     type: json
     data: |-
       {
+        "id": 2,
         "value": "Updated value"
       }
   auth: inherit

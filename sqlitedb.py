@@ -29,21 +29,24 @@ class ItemStore:
         try:
             with self._connection() as connection:
                 cursor = connection.execute(query, params or ())
-                return cursor.fetchall()
+                return cursor.fetchall(), cursor.rowcount
         except sqlite3.Error as error:
             raise DatabaseError(str(error)) from error
 
     def get_items(self):
-        rows = self._execute("SELECT * FROM items ORDER BY id")
+        rows, _ = self._execute("SELECT * FROM items ORDER BY id")
         return [{"id": item_id, "value": value} for item_id, value in rows]
 
     def put_item(self, item):
         self._execute("INSERT INTO items (value) VALUES (?)", (item["value"],))
 
     def patch_item(self, item_id, item):
-        self._execute(
-            "UPDATE items SET value = ? WHERE id = ?", (item["value"], item_id)
+        _, updated = self._execute(
+            "UPDATE items SET value = ? WHERE id = ?",
+            (item["value"], item_id),
         )
+        return updated > 0
 
     def delete_item(self, item_id):
-        self._execute("DELETE FROM items WHERE id = ?", (item_id,))
+        _, deleted = self._execute("DELETE FROM items WHERE id = ?", (item_id,))
+        return deleted > 0

@@ -13,15 +13,41 @@ def create_app(store):
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = MAX_REQUEST_SIZE
 
-    def validate_item_json(item_json):
-        if not isinstance(item_json, dict) or not isinstance(
-            item_json.get("value"), str
+    def validate_item_json(item_json, require_id=False):
+        if (
+            not isinstance(item_json, dict)
+            or not isinstance(item_json.get("value"), str)
+            or (
+                require_id
+                and (
+                    not isinstance(item_json.get("id"), int)
+                    or isinstance(item_json.get("id"), bool)
+                )
+            )
         ):
             return None, json_response(
                 400,
-                {"error": "Item must contain string field 'value'"},
+                {
+                    "error": (
+                        "Item must contain integer field 'id' and string field 'value'"
+                        if require_id
+                        else "Item must contain string field 'value'"
+                    )
+                },
             )
         return item_json, None
+
+    def validate_item_id_json(item_json):
+        if (
+            not isinstance(item_json, dict)
+            or not isinstance(item_json.get("id"), int)
+            or isinstance(item_json.get("id"), bool)
+        ):
+            return None, json_response(
+                400,
+                {"error": "Request body must contain integer field 'id'"},
+            )
+        return item_json["id"], None
 
     def json_response(status, payload):
         return Response(
@@ -64,22 +90,34 @@ def create_app(store):
         item, error = validate_item_json(request.get_json(silent=True))
         if error is not None:
             return error
-        
+
         store.put_item(item)
         return "", 201
 
-    @app.patch("/patchItem/<item_id>/")
-    def patch_item(item_id):
-        item, error = validate_item_json(request.get_json(silent=True))
+    @app.patch("/patchItem/")
+    def patch_item():
+        item, error = validate_item_json(
+            request.get_json(silent=True), require_id=True
+        )
         if error is not None:
             return error
-        
-        store.patch_item(item_id, item)
+
+        item_id = item["id"]
+        if not store.patch_item(item_id, item):
+            return json_response(
+                404, {"error": "Item with ID '{}' not found".format(item_id)}
+            )
         return "", 200
 
-    @app.delete("/deleteItem/<item_id>/")
-    def delete_item(item_id):
-        store.delete_item(item_id)
+    @app.delete("/deleteItem/")
+    def delete_item():
+        item_id, error = validate_item_id_json(request.get_json(silent=True))
+        if error is not None:
+            return error
+        if not store.delete_item(item_id):
+            return json_response(
+                404, {"error": "Item with ID '{}' not found".format(item_id)}
+            )
         return "", 200
 
     return app

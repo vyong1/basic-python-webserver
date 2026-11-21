@@ -28,24 +28,29 @@ class ItemsAPITest(unittest.TestCase):
     def test_create_list_update_and_delete(self):
         self.assertEqual(self.request("GET", "/getItems/"), (200, b"[]"))
         self.assertEqual(
-            self.request("POST", "/putItem/", {"id": "one", "value": "first"})[0],
+            self.request("POST", "/putItem/", {"value": "first"})[0],
             201,
         )
+        item = json.loads(self.request("GET", "/getItems/")[1])[0]
         self.assertEqual(
             json.loads(self.request("GET", "/getItems/")[1]),
-            [{"id": "one", "value": "first"}],
+            [{"id": item["id"], "value": "first"}],
         )
         self.assertEqual(
-            self.request("PATCH", "/patchItem/one/", {"id": "one", "value": "updated"})[
-                0
-            ],
+            self.request(
+                "PATCH",
+                "/patchItem/",
+                {"id": item["id"], "value": "updated"},
+            )[0],
             200,
         )
         self.assertEqual(
             json.loads(self.request("GET", "/getItems/")[1])[0]["value"],
             "updated",
         )
-        self.assertEqual(self.request("DELETE", "/deleteItem/one/")[0], 200)
+        self.assertEqual(
+            self.request("DELETE", "/deleteItem/", {"id": item["id"]})[0], 200
+        )
         self.assertEqual(self.request("GET", "/getItems/"), (200, b"[]"))
 
     def test_api_index_is_served_at_root_and_index_path(self):
@@ -57,8 +62,8 @@ class ItemsAPITest(unittest.TestCase):
                 b"GET /health",
                 b"GET /getItems/",
                 b"POST /putItem/",
-                b"PATCH /patchItem/{id}/",
-                b"DELETE /deleteItem/{id}/",
+                b"PATCH /patchItem/",
+                b"DELETE /deleteItem/",
             ):
                 self.assertIn(endpoint, body)
 
@@ -68,22 +73,25 @@ class ItemsAPITest(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(json.loads(body), {"status": "ok"})
 
-    def test_update_requires_matching_item_id_and_existing_record(self):
-        status, _ = self.request(
-            "PATCH", "/patchItem/missing/", {"id": "different", "value": "x"}
-        )
-        self.assertEqual(status, 400)
-        status, _ = self.request(
-            "PATCH", "/patchItem/missing/", {"id": "missing", "value": "x"}
+    def test_update_and_delete_report_missing_ids(self):
+        status, body = self.request(
+            "PATCH", "/patchItem/", {"id": 999, "value": "x"}
         )
         self.assertEqual(status, 404)
+        self.assertIn("999", json.loads(body)["error"])
 
-    def test_duplicate_create_and_missing_delete_report_conflicts(self):
-        self.request("POST", "/putItem/", {"id": "one", "value": "first"})
-        status, _ = self.request("POST", "/putItem/", {"id": "one", "value": "second"})
-        self.assertEqual(status, 409)
-        status, _ = self.request("DELETE", "/deleteItem/missing/")
+        status, body = self.request("DELETE", "/deleteItem/", {"id": 999})
         self.assertEqual(status, 404)
+        self.assertIn("999", json.loads(body)["error"])
+
+    def test_create_generates_ids_and_missing_delete_reports_not_found(self):
+        self.request("POST", "/putItem/", {"value": "first"})
+        self.request("POST", "/putItem/", {"value": "second"})
+        items = json.loads(self.request("GET", "/getItems/")[1])
+        self.assertEqual([item["id"] for item in items], [1, 2])
+        status, body = self.request("DELETE", "/deleteItem/", {"id": 999})
+        self.assertEqual(status, 404)
+        self.assertIn("999", json.loads(body)["error"])
 
     def test_database_error_uses_app_error_handler(self):
         class FailingStore:

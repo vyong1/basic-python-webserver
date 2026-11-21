@@ -44,21 +44,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Item'
+              $ref: '#/components/schemas/NewItem'
       responses:
         '201':
           description: The item was saved.
-  /patchItem/{id}/:
+        '400':
+          description: The value must be a string.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /patchItem/:
     patch:
       operationId: patchItem
       summary: Update an item
       description: Updates an existing item in the database.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -68,22 +68,53 @@ paths:
       responses:
         '200':
           description: The item was updated.
-  /deleteItem/{id}/:
+        '400':
+          description: The body must contain an integer ID and a string value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No item with that ID exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /deleteItem/:
     delete:
       operationId: deleteItem
       summary: Delete an item
       description: Deletes an item from the database.
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemId'
       responses:
         '200':
           description: The item was deleted.
+        '400':
+          description: The request body must contain an integer ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No item with that ID exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
     Item:
       type: object
       required:
@@ -91,6 +122,20 @@ components:
         - value
       properties:
         id:
-          type: string
+          type: integer
         value:
           type: string
+    NewItem:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+    ItemId:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
