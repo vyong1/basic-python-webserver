@@ -25,10 +25,23 @@ python -m gunicorn --bind 127.0.0.1:8000 server:app
 # Docker
 
 ```shell
-docker build -t basic-python-webserver .
-docker run --name basic-python-webserver --rm -p 8080:80 -v basic-python-webserver-data:/data basic-python-webserver
+docker compose up --build -d
 ```
 
-The server is available at <http://localhost:8080>. Verify it with:
+The server is available at <http://localhost:8080>. Follow logs with
+`docker compose logs -f web` and stop it with `docker compose down`.
 
-The named volume `basic-python-webserver-data` persists the SQLite database at `/data/items.db`.
+Compose persists the SQLite database at `/data/items.db` in the `app_data`
+named volume. `docker compose down` keeps the volume; `docker compose down -v`
+also deletes it.
+
+The container starts two Gunicorn instances by default. Set `GUNICORN_INSTANCES`
+in a `.env` file to change the count; each instance uses two Gunicorn workers:
+
+```env
+GUNICORN_INSTANCES=4
+```
+
+Nginx and Supervisor configurations are generated at startup so the load
+balancer and process manager use the same instance count. The value must be
+between 1 and 57,536.
