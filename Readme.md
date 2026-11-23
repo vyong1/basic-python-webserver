@@ -45,3 +45,37 @@ GUNICORN_INSTANCES=4
 Nginx and Supervisor configurations are generated at startup so the load
 balancer and process manager use the same instance count. The value must be
 between 1 and 57,536.
+
+# Kubernetes
+
+Build the image:
+
+```shell
+docker build -t basic-python-webserver:latest .
+```
+
+For a local cluster, use its image-loading command if needed (for example,
+`kind load docker-image basic-python-webserver:latest` or
+`minikube image load basic-python-webserver:latest`).
+For a registry-backed image, tag and push it, then set the Deployment's image
+to the same registry path:
+
+```shell
+docker tag basic-python-webserver:latest registry.example.com/your-project/basic-python-webserver:latest
+docker push registry.example.com/your-project/basic-python-webserver:latest
+```
+
+Apply the manifests and forward the service to localhost:
+
+```shell
+kubectl apply -f k8s.yaml
+kubectl port-forward service/basic-python-webserver 8080:80
+```
+
+The app is then available at <http://localhost:8080>. The manifest creates a
+1 GiB persistent volume claim for `/data`; the cluster must have a default
+StorageClass or a suitable PersistentVolume. The workload intentionally uses a
+single replica because all instances use one SQLite database file. The
+Deployment recreates the pod during updates to avoid overlapping pods writing
+to SQLite. The container's `app` user has a fixed UID/GID so the pod's `fsGroup`
+can write to the mounted volume.

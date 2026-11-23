@@ -6,8 +6,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && rm -f /etc/nginx/sites-enabled/default /etc/nginx/conf.d/default.conf
 
-# unprivileged user for the Python processes
-RUN useradd --system --no-create-home --shell /usr/sbin/nologin app
+# unprivileged Gunicorn user with stable IDs for persistent-volume permissions
+RUN groupadd --system --gid 10001 app \
+    && useradd --uid 10001 --gid app --no-create-home \
+        --shell /usr/sbin/nologin app
 
 WORKDIR /app
 
