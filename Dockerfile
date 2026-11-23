@@ -25,10 +25,11 @@ COPY supervisord.conf /etc/supervisord.conf
 # gunicorn "module:variable" entry point. Change to match your app.
 ENV APP_MODULE=server:app
 ENV ITEMS_DB_PATH=/data/items.db
+ENV GUNICORN_INSTANCES=2
 
 # The app user owns the persistent database directory.
 RUN mkdir -p /data && chown app:app /data
 
 EXPOSE 80
 
-CMD ["supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["python", "/app/docker_entrypoint.py"]
